@@ -294,11 +294,35 @@
     else if (D.full) location.href = D.full;
     else if (D.k) setting(D.k, items().indexOf(t));
   });
-  function pickDir() {
+    function pickDir() {
     let i = $('#picker');
     if (!i) {
-      i = document.createElement('input'); i.type = 'file'; i.id = 'picker'; i.multiple = true; i.setAttribute('webkitdirectory', ''); i.hidden = true; document.body.appendChild(i);
-      i.onchange = () => { local = [...i.files].filter(f => /^(video|audio|image)\//.test(f.type)); R.media(); focusAt(1); const L = links(); L.media = local.map(f => ({ name: f.name, type: f.type, size: f.size })); saveLinks(L); };
+      i = document.createElement('input'); 
+      i.type = 'file'; 
+      i.id = 'picker'; 
+      i.multiple = true; 
+      i.setAttribute('webkitdirectory', ''); 
+      i.hidden = true; 
+      document.body.appendChild(i);
+      
+      i.onchange = () => { 
+        // On accepte les vidéos, audios, images ET les fichiers avec des extensions spécifiques
+        local = [...i.files].filter(f => {
+          // Si le navigateur connaît le type MIME (ex: video/mp4), on l'accepte
+          if (/^(video|audio|image)\//.test(f.type)) return true;
+          
+          // Sinon, on vérifie l'extension du fichier (ex: .mp4, .mkv, .avi)
+          const ext = f.name.split('.').pop().toLowerCase();
+          const extensionsAutorisees = ['mp4', 'mkv', 'avi', 'mov', 'webm', 'mp3', 'wav', 'ogg', 'jpg', 'jpeg', 'png', 'gif'];
+          return extensionsAutorisees.includes(ext);
+        }); 
+        
+        R.media(); 
+        focusAt(1); 
+        const L = links(); 
+        L.media = local.map(f => ({ name: f.name, type: f.type, size: f.size })); 
+        saveLinks(L); 
+      };
     }
     i.click();
   }
