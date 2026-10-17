@@ -6,7 +6,7 @@ window.NOVA = {
       icon: '<rect x="4" y="8" width="24" height="16" rx="5"/><path d="M14 12.500l6 3.500-6 3.500z" fill="currentColor"/>' },
     { id: 'spotify', name: 'Spotify', d: 'Lecteur intégré', c: '#1FB66A', screen: 'spotify',
       icon: '<circle cx="16" cy="16" r="12"/><path d="M9 12.500c5-1.500 11-1 15 1.500M10 17c4-1 8.500-.700 12 1.300M11 21.200c3-.700 6-.400 8.500.900"/>' },
-    { id: 'netflix', name: 'Netflix', d: 'Films et séries', c: '#D81F26', web: 'https://www.netflix.com',
+    { id: 'netflix', name: 'Netflix', d: 'Recherche web', c: '#D81F26', web: 'https://www.google.com/search?q=Netflix', 
       icon: '<path d="M10 26V6l12 20V6"/>' },
     { id: 'browser', name: 'Navigateur', d: 'Sites favoris', c: '#3B82F6', screen: 'browser',
       icon: '<circle cx="16" cy="16" r="12"/><ellipse cx="16" cy="16" rx="5" ry="12"/><path d="M4 16h24"/>' },
