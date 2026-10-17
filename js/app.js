@@ -183,6 +183,11 @@
     embPrev = document.activeElement; embPrev && embPrev.blur(); window.focus();
     emb = kind; ytOn = true; qSet = 0; const E = $('#emb'), f = $('.frame', E);
     E.className = kind; $('h2', E).textContent = title; E.hidden = false; $('p', E).textContent = HINT[kind];
+        // Si c'est un lien YouTube classique, on le convertit en lien embed pour éviter le bug
+    if (kind === 'yt' && src.includes('youtube.com/watch')) {
+        const videoId = src.match(/v=([\w-]{11})/);
+        if (videoId) src = 'https://www.youtube.com/embed/' + videoId[1] + '?autoplay=1&rel=0';
+    }
     f.innerHTML = kind === 'yt' ? `<iframe ${SB} src="${src}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`
       : kind === 'sp' ? `<iframe ${SB} src="https://open.spotify.com/embed/${src}?theme=0" allow="autoplay; encrypted-media; clipboard-write" style="max-width:70rem;height:352px"></iframe>`
       : `<iframe ${SBW} src="${src}" allow="autoplay; encrypted-media; fullscreen; clipboard-write" allowfullscreen></iframe>`;
