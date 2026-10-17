@@ -155,7 +155,7 @@
       <h3>Sélection</h3><div class="row">${ytList().map((l, i) => ytCard(l, `data-yt="${i}"`)).join('')}
       <button class="poster" data-f data-add="yt" style="--g1:#334155;--g2:#0f172a"><b>Ajouter un lien</b><small>Colle l’adresse d’une vidéo</small></button>
       ${N.ytApiKey ? '<button class="poster" data-f data-add="ytq" style="--g1:#7f1d1d;--g2:#0f172a"><b>Rechercher</b><small>Dans NOVA TV</small></button>' : ''}
-      <button class="poster" data-f data-web="https://www.youtube.com/tv" style="--g1:#7f1d1d;--g2:#0f172a"><b>Site YouTube</b><small>Version complète, protégée</small></button></div>
+      <button class="poster" data-f data-web="https://www.google.com/search?q=YouTube" style="--g1:#7f1d1d;--g2:#0f172a"><b>Recherche YouTube</b><small>Via Google</small></button></div>
       <p class="note">${N.ytApiKey ? '' : 'Pour les tendances et la recherche ici, ajoute une clé gratuite YouTube Data API dans js/data.js (ytApiKey). '}Suppr efface un lien ajouté.</p>`;
   };
   R.spotify = () => {
