@@ -74,3 +74,9 @@ h3{font-size:1.5rem;color:var(--dim);font-weight:600;margin:2rem 0 .2rem}
 #emb.web .frame{padding:4rem 0 0}
 #emb.web iframe{max-width:none;border-radius:0;background:#fff}
 .card,.poster{will-change:transform}
+#vol{position:fixed;right:5rem;bottom:5rem;z-index:40;min-width:16rem;padding:1rem 1.6rem;border-radius:1.2rem;background:#1b2140ee;border:1px solid #ffffff22;opacity:0;pointer-events:none;transition:opacity .25s}
+#vol.show{opacity:1}
+#vol i{display:block;height:.5rem;border-radius:1rem;background:#ffffff30;margin-top:.7rem;overflow:hidden}
+#vol b{display:block;height:100%;background:var(--accent)}
+#embBack{position:absolute;top:2rem;right:5rem;z-index:2;padding:.6rem 1.4rem;border-radius:1rem;background:#ffffff1f;font-size:1.1rem;cursor:pointer;transition:opacity .6s}
+#emb.idle #embBack{opacity:0;pointer-events:none}
