@@ -43,6 +43,8 @@ Alternative GitHub Pages : même dépôt, Settings > Pages > branche principale,
 - Spotify : Entrée = lecture ou pause (à vérifier).
 - Au bout de 5 secondes de lecture, titre et barres disparaissent (grand écran). Toute touche les réaffiche.
 - Suppr efface un lien ajouté.
+- Volume : Page↑ / Page↓ (aussi + et −), partout, y compris pendant un média local ou une vidéo YouTube intégrée. Réglage mémorisé. Le lecteur Spotify intégré ne permet pas de régler son volume depuis NOVA TV : utilise le volume de l'appareil.
+- Écran Spotify : bouton « Retour » en fin de liste. Dans les lecteurs intégrés, un bouton « Retour » est aussi affiché en haut à droite (souris), et Échap ferme au clavier.
 
 ## 4. Applications
 
@@ -51,7 +53,7 @@ Alternative GitHub Pages : même dépôt, Settings > Pages > branche principale,
 - **Netflix** : simple lien vers netflix.com, ouvert dans le même onglet (abonnement requis). Retour : Alt + ←.
 - **YouTube TV** et **YouTube classique** : le vrai site, proposé uniquement dans NOVA TV Shell (sandbox). Dans un navigateur normal, YouTube reste dans le lecteur intégré protégé.
 - **Navigateur** : sites favoris et saisie d'une adresse, dans le même onglet.
-- **Médias** : « Choisir un dossier » lit les vidéos, musiques et photos d'une clé USB ou d'un dossier, sans rien envoyer sur Internet. Contenus de démonstration marqués « Démo ».
+- **Médias** : « Importer un dossier » ou « Importer des fichiers » (clé USB, disque, dossier) ajoutent une collection à ta bibliothèque. Chaque import est enregistré dans le fichier JSON (noms, chemins, types, tailles) et l'accès aux fichiers est mémorisé par le navigateur. En revenant dans Médias, ou en choisissant ce JSON dans Paramètres, tes collections réapparaissent et se rouvrent d'un clic (Chrome ou Edge sur PC : une autorisation peut être redemandée). Suppr retire une collection. Contenus de démonstration marqués « Démo ».
 - **Paramètres** : couleur, taille du texte, animations, format de l'heure. Mémorisés dans le navigateur.
 
 Les lecteurs sont enfermés (`sandbox`, pas d'ouverture de fenêtre) pour éviter qu'ils lancent l'application YouTube ou Spotify de l'appareil. Efficacité à vérifier sur ta box.
@@ -62,7 +64,7 @@ Les lecteurs sont enfermés (`sandbox`, pas d'ouverture de fenêtre) pour évite
 - Chrome ou Edge sur PC : dans Paramètres, « Fichier bibliothèque : créer » choisit l'emplacement une fois. Ensuite le même fichier est mis à jour sans nouveau téléchargement, et relu à chaque besoin (tu peux aussi le modifier à la main). À chaque nouvelle session, le navigateur demande l'autorisation d'écrire dedans (une touche ou un clic suffit à la déclencher).
 - « Fichier bibliothèque : charger » rouvre un fichier existant, par exemple sur un autre appareil.
 - Autres navigateurs (box de télé comprise) : le fichier est téléchargé à chaque enregistrement, et « charger » le relit manuellement. Un navigateur ne peut pas lire un fichier du PC sans ton accord à chaque session.
-- Les médias locaux : seuls les noms sont enregistrés. Pour les relire, choisis à nouveau le dossier : une page web ne peut pas rouvrir un fichier de ton PC à partir d'un nom.
+- Médias : le JSON contient la liste, pas les fichiers eux-mêmes. L'accès aux fichiers est gardé par le navigateur pour une même adresse (`localhost:8080`, Vercel et le Shell sont trois adresses différentes). Sur un autre appareil, navigateur ou adresse, la liste réapparaît mais il faut relier les fichiers en appuyant sur l'un d'eux. Firefox et la plupart des navigateurs de box ne peuvent pas rouvrir les fichiers sans que tu les rechoisisses. Les anciens JSON, où les médias n'avaient pas d'identifiant, sont ignorés pour cette partie.
 
 ## 4 ter. Qualité vidéo YouTube
 
