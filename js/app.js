@@ -3,7 +3,7 @@
   const N = window.NOVA, $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const ACC = { Ambre: '#FFB547', Turquoise: '#35E0C2', Violet: '#A596FF', Rose: '#FF7AAE' };
   const SIZES = [['Normale', 1], ['Grande', 1.12], ['Très grande', 1.25]];
-  let P = { accent: 'Ambre', size: 0, motion: 1, h24: 1 };
+  let P = { accent: 'Ambre', size: 0, motion: 1, h24: 1, vol: 0.8 };
   try { Object.assign(P, JSON.parse(localStorage.getItem('nova-prefs') || '{}')); } catch (e) {}
   try { if (!localStorage.getItem('nova-prefs') && (navigator.hardwareConcurrency || 4) <= 2) P.motion = 0; } catch (e) {}
   const save = () => { try { localStorage.setItem('nova-prefs', JSON.stringify(P)); } catch (e) {} };
@@ -65,12 +65,15 @@
   }
   const poster = (t, s, g, attrs, badge) => `<button class="poster" data-f ${attrs} style="--g1:${g[0]};--g2:${g[1]}"><b>${esc(t)}</b><small>${esc(s)}</small>${badge ? '<i>Démo</i>' : ''}</button>`;
   R.media = () => {
+    const L = links().media, v = view;
     $('#media').innerHTML = `<h1>Médias</h1>
-      <h3>Clé USB ou dossier du PC</h3>
-      <div class="row"><button class="poster" data-f data-pick style="--g1:#334155;--g2:#0f172a"><b>Choisir un dossier</b><small>Vidéos, musiques, photos</small></button>
-      ${local.map((f, i) => poster(f.name, f.type.split('/')[0], ['#1d4ed8', '#312e81'], `data-l="${i}"`)).join('')}</div>
-      ${local.length ? '' : '<p class="empty">Les fichiers restent sur ton appareil : rien n’est envoyé sur Internet.' + (links().media.length ? ' Dernier enregistrement : ' + links().media.length + ' fichier(s) (noms seulement), à rouvrir en choisissant le dossier.' : '') + '</p>'}
-      <h3>Démonstration</h3><div class="row">${N.demo.map((d, i) => poster(d.t, d.s, d.g, `data-d="${i}"`, 1)).join('')}</div>`;
+      <h3>Importer</h3><div class="row">
+      <button class="poster" data-f data-imp="dir" style="--g1:#334155;--g2:#0f172a"><b>Importer un dossier</b><small>Clé USB, disque, dossier</small></button>
+      <button class="poster" data-f data-imp="files" style="--g1:#334155;--g2:#0f172a"><b>Importer des fichiers</b><small>Vidéos, musiques, photos</small></button></div>
+      <h3>Ma bibliothèque</h3><div class="row">${L.length ? L.map((c, i) => poster(c.name, c.files.length + ' fichier(s)' + (c.kind === 'dir' ? ', dossier' : ''), ['#1d4ed8', '#312e81'], `data-m="${i}"`)).join('') : '<p class="empty">Rien d’importé pour l’instant. Les fichiers restent sur ton appareil ; la liste est enregistrée dans le fichier JSON choisi dans Paramètres.</p>'}</div>
+      ${v ? `<h3>${esc(v.name)}</h3><div class="row">${v.items.map((f, i) => poster(f.name, f.type + (f.h || f.file ? '' : ', à relier'), ['#0f766e', '#1e3a8a'], `data-mf="${i}"`)).join('')}</div>` : ''}
+      <h3>Démonstration</h3><div class="row">${N.demo.map((d, i) => poster(d.t, d.s, d.g, `data-d="${i}"`, 1)).join('')}</div>
+      <p class="note">Suppr retire une collection de la bibliothèque (tes fichiers ne sont pas supprimés).</p>`;
   };
   R.browser = () => {
     $('#browser').innerHTML = `<h1>Navigateur</h1><h3>Sites favoris, ouverts dans cet onglet</h3>
@@ -90,7 +93,7 @@
     if (k === 'size') P.size = (P.size + 1) % SIZES.length;
     if (k === 'motion') P.motion = P.motion ? 0 : 1;
     if (k === 'h24') P.h24 = P.h24 ? 0 : 1;
-    if (k === 'reset') P = { accent: 'Ambre', size: 0, motion: 1, h24: 1 };
+    if (k === 'reset') P = { accent: 'Ambre', size: 0, motion: 1, h24: 1, vol: 0.8 };
     save(); apply(); tick(); R.settings(); focusAt(idx);
   }
 
@@ -98,7 +101,8 @@
   /* ---------- bibliothèque : liens et médias enregistrés, fichier JSON sur le PC ---------- */
   const emptyLib = () => ({ app: 'NOVA TV', version: 1, yt: [], sp: [], media: [] });
   let LIB = null, fh = null, asked = 0;
-  const links = () => LIB || (LIB = (() => { try { return Object.assign(emptyLib(), JSON.parse(localStorage.getItem('nova-links'))); } catch (e) { return emptyLib(); } })());
+  const norm = j => { j.media = (j.media || []).filter(m => m && m.id && Array.isArray(m.files)); return j; };
+  const links = () => LIB || (LIB = (() => { try { return norm(Object.assign(emptyLib(), JSON.parse(localStorage.getItem('nova-links')))); } catch (e) { return emptyLib(); } })());
   const idb = (mode, fn) => new Promise((ok, ko) => { const r = indexedDB.open('nova', 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onerror = ko; r.onsuccess = () => { const t = r.result.transaction('k', mode), q = fn(t.objectStore('k')); t.oncomplete = () => ok(q && q.result); t.onerror = ko; }; });
   const JT = [{ description: 'Bibliothèque NOVA TV', accept: { 'application/json': ['.json'] } }];
   const perm = async m => (await fh.queryPermission({ mode: m })) === 'granted';
@@ -112,7 +116,7 @@
   const saveLinks = L => { LIB = L; try { localStorage.setItem('nova-links', JSON.stringify(L)); } catch (e) {} persistLib(); };
   function applyLib(txt) {
     try {
-      const j = Object.assign(emptyLib(), JSON.parse(txt));
+      const j = norm(Object.assign(emptyLib(), JSON.parse(txt)));
       if (JSON.stringify(j) === JSON.stringify(links())) return;
       LIB = j; try { localStorage.setItem('nova-links', JSON.stringify(j)); } catch (e) {}
       if (R[cur]) { R[cur](); document.activeElement === document.body && focusAt(0); }
@@ -162,7 +166,8 @@
   R.spotify = () => {
     $('#spotify').innerHTML = `<h1>Spotify</h1><h3>Lecteur officiel intégré : playlists, albums, titres</h3><div class="row">
       ${spList().map((l, i) => poster(l.n, 'Spotify', ['#15803d', '#0f172a'], `data-sp="${i}"`)).join('')}
-      <button class="poster" data-f data-add="sp" style="--g1:#334155;--g2:#0f172a"><b>Ajouter un lien</b><small>Playlist, album ou titre</small></button></div>
+      <button class="poster" data-f data-add="sp" style="--g1:#334155;--g2:#0f172a"><b>Ajouter un lien</b><small>Playlist, album ou titre</small></button>
+      <button class="poster" data-f data-back style="--g1:#334155;--g2:#0f172a"><b>← Retour</b><small>Accueil</small></button></div>
       <p class="note">Sans compte connecté dans ce navigateur, Spotify ne joue que des extraits.</p>`;
   };
   function addLink(k) {
@@ -177,7 +182,7 @@
   const SB = 'sandbox="allow-scripts allow-same-origin allow-presentation"', SBW = 'sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"';
   const embCmd = (msg, origin) => { const i = $('#emb iframe'); i && i.contentWindow.postMessage(msg, origin); };
   const ytMsg = (f, a) => JSON.stringify({ event: 'command', func: f, args: a || [] });
-  const HINT = { yt: 'Entrée : pause   Gauche et droite : vidéo précédente ou suivante   F : plein écran   Échap : fermer', sp: 'Entrée : lecture ou pause   Échap : fermer', web: 'Si la page reste vide, le site refuse l’intégration.   Tab : entrer dans le site   Échap : fermer' };
+  const HINT = { yt: 'Entrée : pause   Gauche et droite : vidéo précédente ou suivante   F : plein écran   Page↑ / Page↓ : volume   Échap : fermer', sp: 'Entrée : lecture ou pause   Échap : fermer   Volume : celui de l’appareil', web: 'Si la page reste vide, le site refuse l’intégration.   Tab : entrer dans le site   Échap : fermer' };
   function openEmbed(kind, src, title) {
     if (kind === 'web') {
       if (!navigator.onLine) return toast(title + ' nécessite Internet');
@@ -219,7 +224,7 @@
       if (d.event === 'onError') toast('YouTube refuse cette lecture intégrée (code ' + d.info + ') : essaie une autre vidéo, ou le vrai site');
       const s = d.info.playerState;
       if (s !== undefined) ytOn = s === 1 || s === 3;
-      if (s === 1 && !qSet) { qSet = 1; embCmd(ytMsg('setPlaybackQuality', ['hd1080']), '*'); }
+      if (s === 1 && !qSet) { qSet = 1; embCmd(ytMsg('setPlaybackQuality', ['hd1080']), '*'); embCmd(ytMsg('setVolume', [Math.round(P.vol * 100)]), '*'); }
     } catch (x) {}
   });
 
@@ -229,14 +234,14 @@
     const pv = $('.pv'), bar = $('.trk i'); pv.innerHTML = ''; bar.style.width = '0'; paused = false;
     $('#player h2').textContent = title; $('#player').hidden = false; wake($('#player'));
     if (o.file) {
-      url = URL.createObjectURL(o.file); const t = o.file.type.split('/')[0];
+      url = URL.createObjectURL(o.file); const t = o.kind || o.file.type.split('/')[0];
       if (t === 'image') pv.innerHTML = `<img src="${url}" alt="">`;
       else {
         if (t === 'audio') pv.innerHTML = '<div class="demo" style="--g1:#312e81;--g2:#0f172a"><b>♪</b></div>';
-        media = document.createElement(t === 'audio' ? 'audio' : 'video'); media.src = url; media.autoplay = true; pv.appendChild(media);
+        media = document.createElement(t === 'audio' ? 'audio' : 'video'); media.src = url; media.autoplay = true; media.volume = P.vol; pv.appendChild(media);
         media.ontimeupdate = () => bar.style.width = (media.currentTime / (media.duration || 1) * 100) + '%';
       }
-      $('#player p').textContent = 'Entrée : pause   Gauche et droite : 10 s   Échap : fermer';
+      $('#player p').textContent = 'Entrée : pause   Gauche et droite : 10 s   Page↑ / Page↓ : volume   Échap : fermer';
     } else {
       pv.innerHTML = `<div class="demo" style="--g1:${o.g[0]};--g2:${o.g[1]}"><b>${esc(title)}</b><span>Lecture de démonstration : aucun contenu réel</span></div>`;
       let p = 0; demoT = setInterval(() => { if (!paused) { p += .4; bar.style.width = p + '%'; if (p >= 100) closePlayer(); } }, 200);
@@ -267,7 +272,18 @@
     if (best) { best.focus(); best.scrollIntoView({ block: 'nearest', inline: 'center', behavior: P.motion ? 'smooth' : 'auto' }); }
   }
   const KEYS = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd' };
+  let volT;
+  function setVol(v) {
+    if (emb === 'sp') return toast('Le lecteur Spotify intégré ne permet pas de régler son volume depuis NOVA TV : utilise le volume de l’appareil');
+    P.vol = Math.max(0, Math.min(1, Math.round(v * 20) / 20)); save();
+    if (media) media.volume = P.vol;
+    if (emb === 'yt') embCmd(ytMsg('setVolume', [Math.round(P.vol * 100)]), '*');
+    const o = $('#vol'); o.innerHTML = `Volume ${Math.round(P.vol * 100)} %<i><b style="width:${P.vol * 100}%"></b></i>`;
+    o.classList.add('show'); clearTimeout(volT); volT = setTimeout(() => o.classList.remove('show'), 1600);
+  }
   addEventListener('keydown', e => {
+    const dv = { PageUp: 1, PageDown: -1, '+': 1, '-': -1 }[e.key];
+    if (dv) { e.preventDefault(); return setVol(P.vol + dv * 0.05); }
     if (!$('#emb').hidden) { if (!(emb === 'web' && e.key === 'Tab')) e.preventDefault(); return embKey(e); }
     if (!$('#player').hidden) {
       wake($('#player'));
@@ -276,7 +292,9 @@
     }
     if (e.key === 'Delete') {
       const D = document.activeElement.dataset || {}, L = links(), nY = N.youtube.length, nS = N.spotify.length;
-      if (D.yt >= nY) L.yt.splice(D.yt - nY, 1); else if (D.sp >= nS) L.sp.splice(D.sp - nS, 1); else return;
+      if (D.yt >= nY) L.yt.splice(D.yt - nY, 1); else if (D.sp >= nS) L.sp.splice(D.sp - nS, 1);
+      else if (D.m !== undefined) { const c = L.media.splice(+D.m, 1)[0]; if (c) idb('readwrite', s => s.delete('h:' + c.id)).catch(() => {}); if (view && c && view.id === c.id) view = null; }
+      else return;
       saveLinks(L); R[cur](); focusAt(0);
     } else if (KEYS[e.key]) { e.preventDefault(); move(KEYS[e.key]); }
     else if (['Escape', 'Backspace', 'GoBack', 'BrowserBack'].includes(e.key) || e.keyCode === 461 || e.keyCode === 10009) { e.preventDefault(); back(); }
@@ -290,8 +308,10 @@
     const D = t.dataset;
     if (D.id) openApp(N.apps.find(a => a.id === D.id));
     else if (D.d) openPlayer(N.demo[D.d].t, { g: N.demo[D.d].g });
-    else if (D.l) openPlayer(local[D.l].name, { file: local[D.l] });
-    else if (D.pick !== undefined) pickDir();
+    else if (D.imp) D.imp === 'dir' ? importDir() : importFiles();
+    else if (D.m !== undefined) openColl(+D.m);
+    else if (D.mf !== undefined) playItem(+D.mf);
+    else if (D.back !== undefined) back();
     else if (D.s) { const s = N.sites[D.s]; navigator.onLine ? (location.href = s.u) : toast(s.n + ' nécessite Internet'); }
     else if (D.url !== undefined) { const u = prompt('Adresse du site :', 'https://'); if (u) location.href = /^https?:/.test(u) ? u : 'https://' + u; }
     else if (D.web) openEmbed('web', D.web, 'YouTube');
@@ -302,15 +322,74 @@
     else if (D.full) location.href = D.full;
     else if (D.k) setting(D.k, items().indexOf(t));
   });
-  function pickDir() {
-    let i = $('#picker');
-    if (!i) {
-      i = document.createElement('input'); i.type = 'file'; i.id = 'picker'; i.multiple = true; i.setAttribute('webkitdirectory', ''); i.hidden = true; document.body.appendChild(i);
-      i.onchange = () => { local = [...i.files].filter(f => /^(video|audio|image)\//.test(f.type)); R.media(); focusAt(1); const L = links(); L.media = local.map(f => ({ name: f.name, type: f.type, size: f.size })); saveLinks(L); };
+  /* ---------- médias importés : liste dans le JSON, accès aux fichiers mémorisé par le navigateur ---------- */
+  let view = null;
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+  const MEDIA_RE = /\.(mp4|m4v|webm|mkv|mov|mp3|m4a|aac|wav|ogg|flac|jpe?g|png|gif|webp)$/i;
+  const mtype = n => /\.(mp3|m4a|aac|wav|ogg|flac)$/i.test(n) ? 'audio' : /\.(jpe?g|png|gif|webp)$/i.test(n) ? 'image' : 'video';
+  const getH = async id => { try { return await idb('readonly', s => s.get('h:' + id)); } catch (e) { return null; } };
+  const putH = (id, h) => idb('readwrite', s => s.put(h, 'h:' + id)).catch(() => {});
+  const toItem = f => ({ name: f.name, path: f.webkitRelativePath || f.name, type: mtype(f.name), size: f.size, file: f });
+  async function scanDir(h, base = '', depth = 0, out = []) {
+    for await (const [n, e] of h.entries()) {
+      if (e.kind === 'file' && MEDIA_RE.test(n)) { const f = await e.getFile(); out.push({ name: n, path: base + n, type: mtype(n), size: f.size, h: e }); }
+      else if (e.kind === 'directory' && depth < 2) await scanDir(e, base + n + '/', depth + 1, out);
     }
-    i.click();
+    return out;
+  }
+  function pickInput(dir, cb) {
+    const i = document.createElement('input'); i.type = 'file'; i.multiple = true; if (dir) i.setAttribute('webkitdirectory', '');
+    i.onchange = () => cb([...i.files].filter(f => MEDIA_RE.test(f.name))); i.click();
+  }
+  function addColl(meta, items) {
+    if (!items.length) return toast('Aucun média trouvé');
+    const L = links();
+    L.media.push(Object.assign({ added: new Date().toISOString() }, meta, { files: items.map(f => ({ name: f.name, path: f.path, type: f.type, size: f.size })) }));
+    view = { id: meta.id, name: meta.name, items }; saveLinks(L); R.media(); focusViewOrTop();
+  }
+  const focusViewOrTop = () => { const f = $('#media [data-mf]'); f ? f.focus() : focusAt(0); };
+  async function importDir() {
+    if (!window.showDirectoryPicker) return pickInput(true, fs => addColl({ id: uid(), kind: 'dir', name: ((fs[0] && fs[0].webkitRelativePath) || '').split('/')[0] || 'Dossier' }, fs.map(toItem)));
+    try { const h = await showDirectoryPicker({ mode: 'read' }), id = uid(); await putH(id, h); addColl({ id, kind: 'dir', name: h.name }, await scanDir(h)); } catch (e) {}
+  }
+  async function importFiles() {
+    if (!window.showOpenFilePicker) return pickInput(false, fs => addColl({ id: uid(), kind: 'files', name: fs[0].name + (fs.length > 1 ? ' +' + (fs.length - 1) : '') }, fs.map(toItem)));
+    try {
+      const hs = (await showOpenFilePicker({ multiple: true })).filter(h => MEDIA_RE.test(h.name)), id = uid();
+      const items = await Promise.all(hs.map(async h => { const f = await h.getFile(); return { name: h.name, path: h.name, type: mtype(h.name), size: f.size, h }; }));
+      if (items.length) await putH(id, hs);
+      addColl({ id, kind: 'files', name: items.length ? items[0].name + (items.length > 1 ? ' +' + (items.length - 1) : '') : 'Fichiers' }, items);
+    } catch (e) {}
+  }
+  async function openColl(idx) {
+    const c = links().media[idx]; if (!c) return;
+    const names = () => c.files.map(f => ({ name: f.name, path: f.path, type: f.type, size: f.size })), hs = await getH(c.id);
+    if (!hs) { view = { id: c.id, name: c.name, items: names() }; R.media(); focusViewOrTop(); return toast('Liste retrouvée, mais les fichiers ne sont pas reliés sur cet appareil : appuie sur un fichier pour les relier'); }
+    try {
+      const probe = c.kind === 'dir' ? hs : hs[0];
+      if ((await probe.queryPermission({ mode: 'read' })) !== 'granted' && (await probe.requestPermission({ mode: 'read' })) !== 'granted') throw 0;
+      const items = c.kind === 'dir' ? await scanDir(hs) : await Promise.all(hs.map(async h => { const f = await h.getFile(); return { name: h.name, path: h.name, type: mtype(h.name), size: f.size, h }; }));
+      view = { id: c.id, name: c.name, items };
+    } catch (e) { view = { id: c.id, name: c.name, items: names() }; toast('Dossier déplacé ou accès refusé : appuie sur un fichier pour le relier'); }
+    R.media(); focusViewOrTop();
+  }
+  async function relinkView() {
+    const L = links(), idx = L.media.findIndex(m => view && m.id === view.id); if (idx < 0) return;
+    const c = L.media[idx];
+    try {
+      if (c.kind === 'dir' && window.showDirectoryPicker) await putH(c.id, await showDirectoryPicker({ mode: 'read' }));
+      else if (window.showOpenFilePicker) await putH(c.id, (await showOpenFilePicker({ multiple: true })).filter(h => MEDIA_RE.test(h.name)));
+      else return pickInput(c.kind === 'dir', fs => { view = { id: c.id, name: c.name, items: fs.map(toItem) }; R.media(); focusViewOrTop(); });
+      openColl(idx);
+    } catch (e) {}
+  }
+  async function playItem(i) {
+    const it = view && view.items[i]; if (!it) return;
+    if (!it.file && !it.h) return relinkView();
+    try { openPlayer(it.name, { file: it.file || await it.h.getFile(), kind: it.type }); } catch (e) { toast('Fichier introuvable : il a peut-être été déplacé'); }
   }
 
+  $('#embBack').onclick = () => closeEmbed();
   addEventListener('online', net); addEventListener('offline', net);
   idb('readonly', s => s.get('fh')).then(h => { if (h) { fh = h; readLib(); } }).catch(() => {});
   const ask = async () => { if (asked || !fh) return; asked = 1; try { if (!(await perm('readwrite'))) await fh.requestPermission({ mode: 'readwrite' }); readLib(); } catch (e) {} };
