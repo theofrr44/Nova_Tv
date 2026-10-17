@@ -1,0 +1,8 @@
+{
+  "name": "nova-tv-shell",
+  "version": "1.0.0",
+  "description": "Coque Electron en sandbox pour NOVA TV",
+  "main": "main.js",
+  "scripts": { "start": "electron ." },
+  "license": "MIT"
+}
