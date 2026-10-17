@@ -15,6 +15,8 @@ Interface Smart TV personnelle en HTML, CSS et JavaScript natif. Aucune dépenda
 
 ## 1. Voir le résultat sur ton PC
 
+Attention : l'aperçu intégré de Claude bloque les liens externes (message « Ce contenu est bloqué »). Télécharge le fichier et ouvre-le dans Chrome ou Edge.
+
 Option simple : double-clique sur `index.html` (ou `nova-tv-autonome.html`), puis F11 pour le plein écran. L'interface, les réglages, la démo et tes fichiers locaux marchent. Les lecteurs YouTube et Spotify ne démarrent pas dans ce mode.
 
 Option complète : ouvre un terminal dans le dossier, lance `py -m http.server 8080`, puis ouvre http://localhost:8080 dans Chrome ou Edge. Tout fonctionne.
@@ -46,7 +48,8 @@ Alternative GitHub Pages : même dépôt, Settings > Pages > branche principale,
 
 - **YouTube** : lecteur officiel intégré, sans redirection. Sélection de vidéos dans `js/data.js` (`youtube`), bouton « Ajouter un lien ». Pour les tendances et la recherche dans NOVA TV, crée une clé gratuite YouTube Data API v3, mets-la dans `ytApiKey`, et restreins-la à l'adresse de ton site dans la console Google.
 - **Spotify** : lecteur officiel intégré. Extraits seulement sans compte Spotify connecté dans le navigateur.
-- **Netflix** et **Site YouTube** (écran YouTube) : NOVA TV tente d'afficher le vrai site dans un cadre protégé (sandbox : pas de fenêtre ni d'application externe). Ces sites interdisent très probablement l'intégration : page vide, et rien n'y change. Tab permet d'entrer dans le site, Échap de fermer. Abonnement Netflix requis.
+- **Netflix** : simple lien vers netflix.com, ouvert dans le même onglet (abonnement requis). Retour : Alt + ←.
+- **YouTube TV** et **YouTube classique** : le vrai site, proposé uniquement dans NOVA TV Shell (sandbox). Dans un navigateur normal, YouTube reste dans le lecteur intégré protégé.
 - **Navigateur** : sites favoris et saisie d'une adresse, dans le même onglet.
 - **Médias** : « Choisir un dossier » lit les vidéos, musiques et photos d'une clé USB ou d'un dossier, sans rien envoyer sur Internet. Contenus de démonstration marqués « Démo ».
 - **Paramètres** : couleur, taille du texte, animations, format de l'heure. Mémorisés dans le navigateur.
@@ -64,6 +67,28 @@ Les lecteurs sont enfermés (`sandbox`, pas d'ouverture de fenêtre) pour évite
 ## 4 ter. Qualité vidéo YouTube
 
 YouTube ne laisse plus les sites choisir la qualité : son lecteur décide selon la taille du cadre et ta connexion, et commence souvent bas. NOVA TV demande du 1080p (non garanti), agrandit le lecteur en plein écran après 5 s, et la touche F passe le navigateur en plein écran, ce qui aide beaucoup. Pour forcer une qualité, utilise le menu du lecteur (la roue dentée) avec la souris.
+
+## 4 quater. Vrais sites (YouTube, Netflix, Spotify) et NOVA TV Shell
+
+Un vrai site ne peut pas être affiché à l'intérieur de NOVA TV : YouTube, Netflix et Spotify interdisent leur intégration dans une page, et la sandbox ne change rien (elle limite ce que le site peut faire, elle ne lève pas ce refus). Je n'ai pas fait de passerelle qui retire ces protections : elle ferait passer tes identifiants par un serveur tiers et enfreint les conditions de ces services.
+
+Ce qui marche :
+- **Chrome ou Edge** : Netflix s'ouvre en simple lien dans le même onglet, avec la pleine qualité et le DRM. Retour : Alt + ←, ou mets NOVA TV en page d'accueil du navigateur et utilise Alt + Origine. YouTube reste dans le lecteur intégré (sandbox).
+- **NOVA TV Shell** (dossier `shell/`) : petite application Electron avec sandbox obligatoire. Elle ouvre NOVA TV en plein écran, bloque les nouvelles fenêtres et tout lancement d'application externe, et affiche le vrai site dans la même fenêtre. Touche Origine ou F1 : retour à NOVA TV. Alt + F4 : quitter.
+  1. Installe Node.js, puis dans le dossier `shell` : `npm install electron --save-dev`
+  2. Lance `npm start`. Pour utiliser ton adresse Vercel : `set NOVA_URL=https://ton-adresse.vercel.app` avant `npm start` (Windows).
+  3. Limite : Electron standard n'a pas Widevine, donc Netflix et le site complet de Spotify risquent de ne pas lire. YouTube fonctionne. À vérifier sur ton PC.
+- Sur Fire TV ou Android TV, le Shell ne s'installe pas (c'est une application de PC, Mac ou Linux, dont Raspberry Pi). Là, le blocage du lancement d'applications dépend du navigateur de la box : à vérifier.
+
+## 4 quinquies. Compte YouTube et reconnexion automatique (NOVA TV Shell)
+
+Dans le Shell, l'écran YouTube propose YouTube TV (accueil), YouTube classique (accueil) et Mon compte. Raccourcis au clavier, partout dans le Shell : F2 = accueil YouTube TV, F3 = page du compte, Origine ou F1 = retour à NOVA TV.
+- **Lancer** : double-clic sur `lancer-nova-tv.bat` (installe Electron au premier lancement, Node.js requis).
+- **Se connecter** : ouvre YouTube TV et choisis « Se connecter ». Utilise de préférence le code à saisir sur youtube.com/activate depuis ton téléphone ou ton PC : ton mot de passe n'est alors jamais tapé dans le Shell. Google peut refuser une connexion par mot de passe dans une application (« navigateur non sécurisé ») : je n'ai pas contourné ce contrôle. À vérifier chez toi.
+- **Reconnexion automatique** : la connexion est enregistrée sur le disque dans le dossier de données du Shell (stockage `persist:nova`) et rechargée à chaque lancement. NOVA TV ne stocke jamais de mot de passe. Les réglages de NOVA TV sont aussi conservés, car le Shell utilise toujours la même adresse locale (port 47831).
+- **Se déconnecter** : depuis le menu du compte YouTube, ou en supprimant le dossier de données du Shell. Toute personne qui utilise ta session Windows peut utiliser ta connexion.
+- **Démarrer avec Windows** : touches Windows + R, tape `shell:startup`, et place-y un raccourci vers `lancer-nova-tv.bat`.
+- Dans un navigateur normal, le vrai site YouTube n'est pas proposé (aucune sandbox possible) : YouTube reste dans le lecteur intégré, sans compte.
 
 ## 5. Hors ligne ou Internet
 
