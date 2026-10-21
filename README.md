@@ -66,6 +66,8 @@ Les lecteurs sont enfermés (`sandbox`, pas d'ouverture de fenêtre) pour évite
 - Autres navigateurs (box de télé comprise) : le fichier est téléchargé à chaque enregistrement, et « charger » le relit manuellement. Un navigateur ne peut pas lire un fichier du PC sans ton accord à chaque session.
 - Médias : le JSON contient la liste, pas les fichiers eux-mêmes. L'accès aux fichiers est gardé par le navigateur pour une même adresse (`localhost:8080`, Vercel et le Shell sont trois adresses différentes). Sur un autre appareil, navigateur ou adresse, la liste réapparaît mais il faut relier les fichiers en appuyant sur l'un d'eux. Firefox et la plupart des navigateurs de box ne peuvent pas rouvrir les fichiers sans que tu les rechoisisses. Les anciens JSON, où les médias n'avaient pas d'identifiant, sont ignorés pour cette partie.
 
+**Tout réinitialiser** (Paramètres) : vide le cache du navigateur (bibliothèque, liens, médias, réglages, accès mémorisés aux fichiers), vide le fichier JSON lié puis l'oublie. Il faut appuyer deux fois sur Entrée dans les 5 secondes. NOVA TV garde en effet une copie de la bibliothèque dans le navigateur : vider le JSON à la main ne suffit pas tant que le fichier n'est pas relu (autorisation à redonner à chaque session). Un JSON vide est maintenant lu comme une bibliothèque vide, et un JSON introuvable affiche un message. En dernier recours, efface les données du site dans les réglages du navigateur.
+
 ## 4 ter. Qualité vidéo YouTube
 
 YouTube ne laisse plus les sites choisir la qualité : son lecteur décide selon la taille du cadre et ta connexion, et commence souvent bas. NOVA TV demande du 1080p (non garanti), agrandit le lecteur en plein écran après 5 s, et la touche F passe le navigateur en plein écran, ce qui aide beaucoup. Pour forcer une qualité, utilise le menu du lecteur (la roue dentée) avec la souris.
@@ -91,6 +93,16 @@ Dans le Shell, l'écran YouTube propose YouTube TV (accueil), YouTube classique 
 - **Se déconnecter** : depuis le menu du compte YouTube, ou en supprimant le dossier de données du Shell. Toute personne qui utilise ta session Windows peut utiliser ta connexion.
 - **Démarrer avec Windows** : touches Windows + R, tape `shell:startup`, et place-y un raccourci vers `lancer-nova-tv.bat`.
 - Dans un navigateur normal, le vrai site YouTube n'est pas proposé (aucune sandbox possible) : YouTube reste dans le lecteur intégré, sans compte.
+
+## 4 sexies. Lancer les vraies applications (YouTube, Spotify, Netflix)
+
+Un site web ne peut pas exécuter une application dans une sandbox : il demande seulement au système de l'ouvrir, et l'application tourne ensuite hors sandbox, avec ses propres protections. Ce que NOVA TV contrôle : le lancement est limité à une liste fixe (`launch` dans `js/data.js`), jamais à une adresse libre. Dans le Shell, la page reste en sandbox et le lancement passe par le processus principal, avec liste blanche.
+- **Boutons** : « Lancer l'appli » sur les écrans YouTube et Spotify, et la carte Netflix de l'accueil.
+- **Android TV, Google TV, Fire TV** (NOVA TV ouvert dans leur navigateur) : lancement par intention Android, vers YouTube (`com.google.android.youtube.tv`, ou `com.amazon.firetv.youtube` sur Fire TV), Spotify (`com.spotify.tv.android`) et Netflix (`com.netflix.ninja`). Noms de paquets à vérifier sur ta box. Le navigateur doit accepter les liens `intent://` (Chrome oui ; d'autres comme Silk, à vérifier).
+- **PC Windows ou Mac** : seulement Spotify (adresse `spotify:`), si l'application est installée ; le navigateur demande une confirmation. YouTube n'a pas d'application PC officielle. Netflix : pas de méthode de lancement fiable, la carte ouvre alors le site, avec un message.
+- **Shell** : seul Spotify est lançable, pour la même raison.
+- **EZCast M2 et ta LG 32LS5600** n'exécutent aucune application : NOVA TV doit tourner sur l'appareil qui possède ces applications (box Android TV, Google TV ou Fire TV).
+- L'aperçu intégré de Claude bloque tout lancement. Je n'ai pas testé ces lancements sur du matériel réel.
 
 ## 5. Hors ligne ou Internet
 
